@@ -23,11 +23,13 @@
  */
 package io.nuls.pocm.contract.manager;
 
-import io.nuls.contract.sdk.*;
-import io.nuls.pocm.contract.event.ErrorEvent;
+import io.nuls.contract.sdk.Address;
+import io.nuls.contract.sdk.Block;
+import io.nuls.contract.sdk.Msg;
+import io.nuls.contract.sdk.Utils;
 import io.nuls.pocm.contract.model.ConsensusAwardInfo;
 import io.nuls.pocm.contract.model.ConsensusDepositInfo;
-import io.nuls.pocm.contract.model.TakeBackUnLockDepositInfo;
+import io.nuls.pocm.contract.model.ConsensusTakeBackUnLockDepositInfo;
 
 import java.math.BigInteger;
 import java.util.HashMap;
@@ -35,7 +37,6 @@ import java.util.LinkedList;
 import java.util.Map;
 import java.util.Set;
 
-import static io.nuls.contract.sdk.Utils.emit;
 import static io.nuls.contract.sdk.Utils.require;
 
 /**
@@ -63,7 +64,7 @@ public class ConsensusManager {
     private long unlockAgentDepositTime = -1L;
     // 初始化共识管理器
     private boolean isReset = false;
-    private Map<String, TakeBackUnLockDepositInfo> takeBackUnLockDepositMap = new HashMap<String, TakeBackUnLockDepositInfo>();
+    private Map<String, ConsensusTakeBackUnLockDepositInfo> takeBackUnLockDepositMap = new HashMap<String, ConsensusTakeBackUnLockDepositInfo>();
     private boolean hasCreate = false;
     private boolean hasStop = false;
     // 等待解锁退还的押金总额
@@ -237,9 +238,9 @@ public class ConsensusManager {
      * 记录用户退出时，锁定的押金，用于押金解锁时退还给用户
      */
     public void recordTakeBackLockDeposit(String userString, BigInteger deposit) {
-        TakeBackUnLockDepositInfo takeBackDepositInfo = takeBackUnLockDepositMap.get(userString);
+        ConsensusTakeBackUnLockDepositInfo takeBackDepositInfo = takeBackUnLockDepositMap.get(userString);
         if(takeBackDepositInfo == null) {
-            takeBackDepositInfo = new TakeBackUnLockDepositInfo(deposit);
+            takeBackDepositInfo = new ConsensusTakeBackUnLockDepositInfo(deposit);
             takeBackUnLockDepositMap.put(userString, takeBackDepositInfo);
         } else {
             takeBackDepositInfo.setDeposit(takeBackDepositInfo.getDeposit().add(deposit));
@@ -254,7 +255,7 @@ public class ConsensusManager {
     public void takeBackUnLockDeposit() {
         Address sender = Msg.sender();
         String senderString = sender.toString();
-        TakeBackUnLockDepositInfo takeBackDeposit = takeBackUnLockDepositMap.remove(senderString);
+        ConsensusTakeBackUnLockDepositInfo takeBackDeposit = takeBackUnLockDepositMap.remove(senderString);
         BigInteger deposit = takeBackDeposit.getDeposit();
         require(takeBackDeposit != null && (deposit = takeBackDeposit.getDeposit()).compareTo(BigInteger.ZERO) > 0, String.format("没有查询到[%s]的押金", senderString));
         totalTakeBackLockDeposit = totalTakeBackLockDeposit.subtract(deposit);
@@ -268,9 +269,9 @@ public class ConsensusManager {
     public void refundAllUnLockDeposit() {
         require(this.isUnLockedAgentDeposit(), "押金锁定中");
         require(takeBackUnLockDepositMap.size() > 0, "无退还信息");
-        Set<Map.Entry<String, TakeBackUnLockDepositInfo>> entries = takeBackUnLockDepositMap.entrySet();
+        Set<Map.Entry<String, ConsensusTakeBackUnLockDepositInfo>> entries = takeBackUnLockDepositMap.entrySet();
         BigInteger deposit;
-        for(Map.Entry<String, TakeBackUnLockDepositInfo> entry : entries) {
+        for(Map.Entry<String, ConsensusTakeBackUnLockDepositInfo> entry : entries) {
             deposit = entry.getValue().getDeposit();
             totalTakeBackLockDeposit = totalTakeBackLockDeposit.subtract(deposit);
             new Address(entry.getKey()).transfer(deposit);

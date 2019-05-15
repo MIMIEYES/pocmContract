@@ -29,10 +29,10 @@ import java.math.BigInteger;
  * @author: PierreLuo
  * @date: 2019-05-15
  */
-public class TakeBackUnLockDepositInfo {
+public class ConsensusTakeBackUnLockDepositInfo {
     private BigInteger deposit;
 
-    public TakeBackUnLockDepositInfo(BigInteger deposit) {
+    public ConsensusTakeBackUnLockDepositInfo(BigInteger deposit) {
         this.deposit = deposit;
     }
 
