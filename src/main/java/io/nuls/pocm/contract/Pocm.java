@@ -378,6 +378,14 @@ public class Pocm extends PocmToken implements Contract {
     }
 
     /**
+     * 合约创建者赎回共识保证金
+     */
+    public void takeBackConsensusCreateAgentDeposit() {
+        onlyOwner();
+        consensusManager.takeBackCreateAgentDeposit(contractCreator);
+    }
+
+    /**
      * 领取奖励,领取为自己抵押挖矿的Token
      */
     public void receiveAwards() {
@@ -860,11 +868,15 @@ public class Pocm extends PocmToken implements Contract {
     public String getTotalDepositList() {
         String depositinfo = "{";
         String temp = "";
-        for (int i = 0; i < totalDepositList.size(); i++) {
+        int size = totalDepositList.size();
+        for (int i = 0; i < size; i++) {
             RewardCycleInfo info = totalDepositList.get(i);
             depositinfo = depositinfo + info.toString() + ",";
         }
-        depositinfo = depositinfo.substring(0, depositinfo.length() - 1) + "}";
+        if (size > 0) {
+            depositinfo = depositinfo.substring(0, depositinfo.length() - 1);
+        }
+        depositinfo += "}";
         return depositinfo;
     }
 
@@ -922,4 +934,33 @@ public class Pocm extends PocmToken implements Contract {
     public String ownerAvailableConsensusAward() {
         return toNuls(consensusManager.getAvailableConsensusReward()).toPlainString();
     }
+
+    /**
+     * 合约创建者清空剩余余额
+     */
+    public void clearContract() {
+        onlyOwner();
+        BigInteger balance = Msg.address().balance();
+        require(balance.compareTo(ONE_NULS) <= 0, "余额不得大于1NULS");
+        contractCreator.transfer(balance);
+    }
+
+    /**
+     * 获取合约当前所有信息(用于测试)
+     */
+    @View
+    public String wholeConsensusInfoForTest() {
+        String totalDepositDetail = totalDepositDetail();
+        String totalDepositList = getTotalDepositList();
+        final StringBuilder sb = new StringBuilder("{");
+        sb.append("\"totalDepositDetail\":")
+                .append('\"').append(totalDepositDetail).append('\"');
+        sb.append(",\"totalDepositList\":")
+                .append('\"').append(totalDepositList).append('\"');
+        sb.append(",\"consensusManager\":")
+                .append(consensusManager.toString());
+        sb.append('}');
+        return sb.toString();
+    }
+
 }

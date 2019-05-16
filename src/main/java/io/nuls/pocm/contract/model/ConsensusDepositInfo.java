@@ -25,6 +25,8 @@ package io.nuls.pocm.contract.model;
 
 import java.math.BigInteger;
 
+import static io.nuls.pocm.contract.util.PocmUtil.toNuls;
+
 /**
  * @author: PierreLuo
  * @date: 2019-05-14
@@ -52,5 +54,16 @@ public class ConsensusDepositInfo {
 
     public void setDeposit(BigInteger deposit) {
         this.deposit = deposit;
+    }
+
+    @Override
+    public String toString() {
+        final StringBuilder sb = new StringBuilder("{");
+        sb.append("\"hash\":")
+                .append('\"').append(hash).append('\"');
+        sb.append(",\"deposit\":")
+                .append('\"').append(toNuls(deposit).toPlainString()).append('\"');
+        sb.append('}');
+        return sb.toString();
     }
 }

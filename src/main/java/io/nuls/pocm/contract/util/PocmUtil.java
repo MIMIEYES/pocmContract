@@ -34,6 +34,9 @@ import java.math.BigInteger;
  * @date: 2019-03-15
  */
 public class PocmUtil {
+
+    public final static BigInteger ONE_NULS = BigInteger.valueOf(100000000L);
+
     public static BigDecimal toNuls(BigInteger na) {
         return new BigDecimal(na).movePointLeft(8);
     }

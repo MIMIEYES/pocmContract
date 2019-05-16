@@ -47,19 +47,16 @@ public class TotalDepositManager {
 
     public BigInteger getTotalDeposit() {
         BigInteger total = totalDeposit;
-        if(openConsensus) {
-            total = total.add(consensusManager.getTotalTakeBackLockDeposit());
-        }
         return total;
     }
 
     public String getTotalDepositDetail() {
-        String result = String.format("running: %s NULS", toNuls(totalDeposit).toPlainString());
+        String result = "running: " + toNuls(totalDeposit).toPlainString() + " NULS";
         BigInteger total = totalDeposit;
         if(openConsensus) {
             BigInteger totalTakeBackLockDeposit = consensusManager.getTotalTakeBackLockDeposit();
             if(totalTakeBackLockDeposit.compareTo(BigInteger.ZERO) > 0) {
-                result += String.format(", waiting for exit: %s NULS", toNuls(totalTakeBackLockDeposit).toPlainString());
+                result += ", waiting for exit: " + toNuls(totalTakeBackLockDeposit).toPlainString() + " NULS";
             }
         }
         return result;

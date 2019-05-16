@@ -25,6 +25,8 @@ package io.nuls.pocm.contract.model;
 
 import java.math.BigInteger;
 
+import static io.nuls.pocm.contract.util.PocmUtil.toNuls;
+
 /**
  * @author: PierreLuo
  * @date: 2019-05-08
@@ -35,6 +37,7 @@ public class ConsensusAwardInfo {
     private BigInteger transferedAward;
 
     public ConsensusAwardInfo(String address) {
+        this.address = address;
         availableAward = BigInteger.ZERO;
         transferedAward = BigInteger.ZERO;
     }
@@ -50,5 +53,18 @@ public class ConsensusAwardInfo {
     public void resetAvailableAward() {
         transferedAward = transferedAward.add(availableAward);
         availableAward = BigInteger.ZERO;
+    }
+
+    @Override
+    public String toString() {
+        final StringBuilder sb = new StringBuilder("{");
+        sb.append("\"address\":")
+                .append('\"').append(address).append('\"');
+        sb.append(",\"availableAward\":")
+                .append('\"').append(toNuls(availableAward).toPlainString()).append('\"');
+        sb.append(",\"transferedAward\":")
+                .append('\"').append(toNuls(transferedAward).toPlainString()).append('\"');
+        sb.append('}');
+        return sb.toString();
     }
 }

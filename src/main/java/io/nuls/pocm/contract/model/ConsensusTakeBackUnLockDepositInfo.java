@@ -25,6 +25,8 @@ package io.nuls.pocm.contract.model;
 
 import java.math.BigInteger;
 
+import static io.nuls.pocm.contract.util.PocmUtil.toNuls;
+
 /**
  * @author: PierreLuo
  * @date: 2019-05-15
@@ -42,5 +44,14 @@ public class ConsensusTakeBackUnLockDepositInfo {
 
     public void setDeposit(BigInteger deposit) {
         this.deposit = deposit;
+    }
+
+    @Override
+    public String toString() {
+        final StringBuilder sb = new StringBuilder("{");
+        sb.append("\"deposit\":")
+                .append('\"').append(toNuls(deposit).toPlainString()).append('\"');
+        sb.append('}');
+        return sb.toString();
     }
 }
