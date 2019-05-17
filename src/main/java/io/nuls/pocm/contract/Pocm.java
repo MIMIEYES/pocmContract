@@ -335,7 +335,7 @@ public class Pocm extends PocmToken implements Contract {
             //从队列中退出抵押金额
             this.quitDepositToMap(deposit, currentHeight, detailInfo.getDepositHeight());
         }
-        boolean isLockedBalance = totalDepositManager.subtract(deposit);
+        boolean isEnoughBalance = totalDepositManager.subtract(deposit);
 
         if (depositInfo.getDepositDetailInfos().size() == 0) {
             totalDepositAddressCount -= 1;
@@ -343,7 +343,7 @@ public class Pocm extends PocmToken implements Contract {
             depositUsers.remove(userString);
         }
         emit(new MiningInfoEvent(miningInfo));
-        if(isLockedBalance) {
+        if(!isEnoughBalance) {
             // 记录用户退出时，锁定的押金，用于押金解锁时退还给用户
             consensusManager.recordTakeBackLockDeposit(userString, deposit);
             emit(new ErrorEvent("押金锁定中", "Token已发放，押金退还失败，押金锁定3天，3天后自动发放，如果没有收到，请使用退还押金功能索回押金"));
@@ -353,9 +353,9 @@ public class Pocm extends PocmToken implements Contract {
     }
 
     /**
-     * 共识保证金解锁后，退还所有申请过退出的用户的押金 - 合约发布者操作
+     * 共识保证金解锁后，退还所有申请过退出的用户的押金 - 合约拥有者操作
      */
-    public void refundAllUnLockDeposit() {
+    public void refundAllUnLockDepositByOwner() {
         onlyOwner();
         require(consensusManager.isUnLockedAgentDeposit(), "押金锁定中");
         consensusManager.refundAllUnLockDeposit();
@@ -370,19 +370,27 @@ public class Pocm extends PocmToken implements Contract {
     }
 
     /**
-     * 合约创建者获取共识奖励金额
+     * 合约拥有者获取共识奖励金额
      */
-    public void transferConsensusReward() {
+    public void transferConsensusRewardByOwner() {
         onlyOwner();
         consensusManager.transferConsensusReward(contractCreator);
     }
 
     /**
-     * 合约创建者赎回共识保证金
+     * 合约拥有者赎回共识保证金
      */
-    public void takeBackConsensusCreateAgentDeposit() {
+    public void takeBackConsensusCreateAgentDepositByOwner() {
         onlyOwner();
         consensusManager.takeBackCreateAgentDeposit(contractCreator);
+    }
+
+    /**
+     * 合约拥有者注销节点
+     */
+    public void stopAgentManuallyByOwner() {
+        onlyOwner();
+        consensusManager.stopAgentManually();
     }
 
     /**

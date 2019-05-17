@@ -266,11 +266,13 @@ public class ConsensusManager {
      * 共识保证金解锁后，退还申请过退出的用户的押金
      */
     public void takeBackUnLockDeposit() {
+
         Address sender = Msg.sender();
         String senderString = sender.toString();
         ConsensusTakeBackUnLockDepositInfo takeBackDeposit = takeBackUnLockDepositMap.remove(senderString);
+        require(takeBackDeposit != null, "没有查询到["+senderString+"]的押金");
         BigInteger deposit = takeBackDeposit.getDeposit();
-        require(takeBackDeposit != null && (deposit = takeBackDeposit.getDeposit()).compareTo(BigInteger.ZERO) > 0, "没有查询到["+senderString+"]的押金");
+        require(deposit.compareTo(BigInteger.ZERO) > 0, "["+senderString+"]没有足够的押金");
         totalTakeBackLockDeposit = totalTakeBackLockDeposit.subtract(deposit);
         sender.transfer(deposit);
     }
@@ -317,11 +319,22 @@ public class ConsensusManager {
         require(ownerCreateAgentDeposit.compareTo(BigInteger.ZERO) > 0, "无可用的创建共识保证金");
         beneficiary.transfer(ownerCreateAgentDeposit);
         ownerCreateAgentDeposit = BigInteger.ZERO;
+        agentDeposit = BigInteger.ZERO;
+    }
+
+    /**
+     * 手动注销节点
+     */
+    public void stopAgentManually() {
+        require(this.isUnLockedConsensus(), "共识功能锁定中");
+        require(hasCreate, "未创建节点");
+        this.stopAgent();
+        this.lockConsensus();
     }
 
 
     /**
-     * 创建节点的hash
+     * 获取创建节点的hash
      */
     public String getAgentHash() {
         return lastAgentHash;
