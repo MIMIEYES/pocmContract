@@ -238,10 +238,11 @@ public class ConsensusManager {
         if(isReset) {
             return false;
         }
-        // 除去共识收益，除去等待解锁退还的押金总额
+        // 除去共识收益，除去等待解锁退还的押金总额，项目发布者缴纳的创建节点保证金
         availableAmount = Msg.address().balance()
                 .subtract(awardInfo.getAvailableAward())
-                .subtract(totalTakeBackLockDeposit);
+                .subtract(totalTakeBackLockDeposit)
+                .subtract(ownerCreateAgentDeposit);
         isReset = true;
         hasStop = false;
         return true;
