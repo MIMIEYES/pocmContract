@@ -386,6 +386,14 @@ public class Pocm extends PocmToken implements Contract {
     }
 
     /**
+     * 合约拥有者委托自己的节点
+     */
+    public void depositManuallyByOwner() {
+        onlyOwner();
+        consensusManager.depositManually();
+    }
+
+    /**
      * 合约拥有者注销节点
      */
     public void stopAgentManuallyByOwner() {
@@ -425,6 +433,16 @@ public class Pocm extends PocmToken implements Contract {
             }
         }
         emit(new MiningInfoEvent(info));
+    }
+
+    /**
+     * 合约创建者清空剩余余额
+     */
+    public void clearContract() {
+        onlyOwner();
+        BigInteger balance = Msg.address().balance();
+        require(balance.compareTo(ONE_NULS) <= 0, "余额不得大于1NULS");
+        contractCreator.transfer(balance);
     }
 
     /**
@@ -938,19 +956,20 @@ public class Pocm extends PocmToken implements Contract {
         return this.maximumDepositAddressCount;
     }
 
+    /**
+     * 获取可领取的共识奖励金额
+     */
     @View
     public String ownerAvailableConsensusAward() {
         return toNuls(consensusManager.getAvailableConsensusReward()).toPlainString();
     }
 
     /**
-     * 合约创建者清空剩余余额
+     * 获取可委托共识的空闲金额
      */
-    public void clearContract() {
-        onlyOwner();
-        BigInteger balance = Msg.address().balance();
-        require(balance.compareTo(ONE_NULS) <= 0, "余额不得大于1NULS");
-        contractCreator.transfer(balance);
+    @View
+    public String freeAmountForConsensusDeposit() {
+        return toNuls(consensusManager.getAvailableAmount()).toPlainString();
     }
 
     /**

@@ -23,6 +23,8 @@
  */
 package io.nuls.pocm.contract.manager;
 
+import io.nuls.contract.sdk.Msg;
+
 import java.math.BigInteger;
 
 import static io.nuls.pocm.contract.util.PocmUtil.toNuls;
@@ -65,17 +67,37 @@ public class TotalDepositManager {
     public void add(BigInteger value) {
         this.totalDeposit = this.totalDeposit.add(value);
         if(openConsensus && consensusManager.isUnLockedConsensus()) {
-            consensusManager.createOrDepositIfPermitted(value, consensusManager.checkCurrentReset());
+            consensusManager.createOrDepositIfPermittedWrapper(value, consensusManager.checkCurrentReset());
         }
     }
 
     public boolean subtract(BigInteger value) {
         this.totalDeposit = this.totalDeposit.subtract(value);
-        if(openConsensus && consensusManager.isUnLockedConsensus()) {
-            consensusManager.checkCurrentReset();
-            return consensusManager.withdrawIfPermitted(value);
-        } else {
+        /**
+         *  情况：用户抵押金被当作了节点创建的保证金
+         *       项目拥有者手动注销了节点，保证金被锁定3天
+         *       用户退出抵押，合约余额不足，则会导致退出抵押失败
+         *          应该正常退出抵押，抵押金在3天后返还
+         *
+         *  判断余额是否足够
+         *      足够 - 返回true
+         *      不足 - 判断共识是否在锁定中
+         *                锁定中 - 返回false
+         *                未锁定 - 调用withdrawIfPermitted
+         */
+        if(Msg.address().balance().compareTo(value) >= 0) {
             return true;
+        } else {
+            if(openConsensus) {
+                if(!consensusManager.isUnLockedConsensus()) {
+                    return false;
+                } else {
+                    consensusManager.checkCurrentReset();
+                    return consensusManager.withdrawIfPermittedWrapper(value);
+                }
+            } else {
+                return true;
+            }
         }
     }
 }
