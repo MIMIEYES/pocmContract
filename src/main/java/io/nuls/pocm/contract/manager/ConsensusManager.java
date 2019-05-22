@@ -205,6 +205,8 @@ public class ConsensusManager {
      * 当可用金额达到最小可委托金额时，合约拥有者可手动委托节点
      */
     public void depositManually() {
+        require(this.isUnLockedConsensus(), "共识功能锁定中");
+        require(hasCreate, "未创建节点");
         tempDepositLockedAmount = depositLockedAmount;
         BigInteger amount = availableAmount.subtract(ONE_NULS);
         require(amount.compareTo(minJoinDeposit) >= 0, "可用金额不足以委托节点");
@@ -445,6 +447,9 @@ public class ConsensusManager {
         BigInteger canDepoist = amount;
         if(canDepoist.add(tempDepositLockedAmount).compareTo(maxTotalDeposit) > 0) {
             canDepoist = maxTotalDeposit.subtract(tempDepositLockedAmount);
+        }
+        if(canDepoist.compareTo(minJoinDeposit) < 0) {
+            return;
         }
         this.deposit(lastAgentHash, canDepoist);
         availableAmount = availableAmount.subtract(fee).subtract(canDepoist);

@@ -386,9 +386,9 @@ public class Pocm extends PocmToken implements Contract {
     }
 
     /**
-     * 合约拥有者委托自己的节点
+     * 合约拥有者委托自己的共识节点
      */
-    public void depositManuallyByOwner() {
+    public void depositConsensusManuallyByOwner() {
         onlyOwner();
         consensusManager.depositManually();
     }
