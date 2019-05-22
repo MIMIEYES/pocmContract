@@ -957,7 +957,7 @@ public class Pocm extends PocmToken implements Contract {
     }
 
     /**
-     * 获取可领取的共识奖励金额
+     * 查询可领取的共识奖励金额
      */
     @View
     public String ownerAvailableConsensusAward() {
@@ -965,7 +965,7 @@ public class Pocm extends PocmToken implements Contract {
     }
 
     /**
-     * 获取可委托共识的空闲金额
+     * 查询可委托共识的空闲金额
      */
     @View
     public String freeAmountForConsensusDeposit() {
@@ -973,7 +973,7 @@ public class Pocm extends PocmToken implements Contract {
     }
 
     /**
-     * 获取合约当前所有信息(用于测试)
+     * 查询合约当前所有信息(用于测试)
      */
     @View
     public String wholeConsensusInfoForTest() {
