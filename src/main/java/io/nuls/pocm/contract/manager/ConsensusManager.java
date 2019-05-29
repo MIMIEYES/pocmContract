@@ -38,7 +38,6 @@ import java.util.Map;
 import java.util.Set;
 
 import static io.nuls.contract.sdk.Utils.require;
-import static io.nuls.pocm.contract.util.PocmUtil.ONE_NULS;
 import static io.nuls.pocm.contract.util.PocmUtil.toNuls;
 
 /**
@@ -47,10 +46,8 @@ import static io.nuls.pocm.contract.util.PocmUtil.toNuls;
  */
 public class ConsensusManager {
 
-    private final BigInteger fee = BigInteger.valueOf(100000L);
     private final BigInteger minCreateDeposit = BigInteger.valueOf(2000000000000L);
     private final BigInteger maxCreateDeposit = BigInteger.valueOf(20000000000000L);
-    private final BigInteger minTransferForCreateDeposit = BigInteger.valueOf(2000100000000L);
     private final BigInteger minJoinDeposit = BigInteger.valueOf(200000000000L);
     private final BigInteger maxTotalDeposit = BigInteger.valueOf(50000000000000L);
 
@@ -112,13 +109,11 @@ public class ConsensusManager {
             Msg.sender().transfer(value);
             this.createAgent(packingAddress, ownerCreateAgentDeposit, "100");
             agentDeposit = ownerCreateAgentDeposit;
-            availableAmount = availableAmount.subtract(fee);
         } else {
-            require(value.compareTo(minTransferForCreateDeposit) >= 0, "创建节点保证金不得小于20001NULS");
-            ownerCreateAgentDeposit = value.subtract(ONE_NULS);
+            require(value.compareTo(minCreateDeposit) >= 0, "创建节点保证金不得小于20000NULS");
+            ownerCreateAgentDeposit = value;
             this.createAgent(packingAddress, ownerCreateAgentDeposit, "100");
             agentDeposit = ownerCreateAgentDeposit;
-            availableAmount = availableAmount.add(ONE_NULS).subtract(fee);
         }
     }
 
@@ -164,12 +159,12 @@ public class ConsensusManager {
         if (hasCreate) {
             String[] args = new String[]{lastAgentHash};
             String[] info = (String[]) Utils.invokeExternalCmd("cs_getContractAgentInfo", args);
-            String delHeight = info[7];
+            String delHeight = info[8];
             // 已删除节点，不再自动创建
             if (!"-1".equals(delHeight)) {
                 return;
             }
-            BigInteger amount = availableAmount.subtract(ONE_NULS);
+            BigInteger amount = availableAmount;
             // 金额不够委托，退出上一笔委托，累积委托金额加入委托
             if (amount.compareTo(minJoinDeposit) < 0) {
                 if (depositList.size() == 0) {
@@ -178,7 +173,7 @@ public class ConsensusManager {
                 ConsensusDepositInfo last = depositList.removeLast();
                 String withdrawHash = this.withdraw(last.getHash());
                 BigInteger lastDeposit = last.getDeposit();
-                availableAmount = availableAmount.subtract(fee).add(lastDeposit);
+                availableAmount = availableAmount.add(lastDeposit);
                 depositLockedAmount = depositLockedAmount.subtract(lastDeposit);
                 deposit = amount.add(lastDeposit);
             } else {
@@ -188,7 +183,7 @@ public class ConsensusManager {
             this.maintainCanDeposit(deposit);
         } else {
             // 检查可用金额是否足以创建节点
-            BigInteger amount = availableAmount.subtract(ONE_NULS);
+            BigInteger amount = availableAmount;
             if (amount.compareTo(minCreateDeposit) < 0) {
                 return;
             }
@@ -196,7 +191,7 @@ public class ConsensusManager {
             deposit = minCreateDeposit;
             this.createAgent(packingAddress, deposit, "100");
             agentDeposit = deposit;
-            availableAmount = availableAmount.subtract(fee).subtract(deposit);
+            availableAmount = availableAmount.subtract(deposit);
             depositLockedAmount = depositLockedAmount.add(deposit);
         }
     }
@@ -208,7 +203,7 @@ public class ConsensusManager {
         require(this.isUnLockedConsensus(), "共识功能锁定中");
         require(hasCreate, "未创建节点");
         tempDepositLockedAmount = depositLockedAmount;
-        BigInteger amount = availableAmount.subtract(ONE_NULS);
+        BigInteger amount = availableAmount;
         require(amount.compareTo(minJoinDeposit) >= 0, "可用金额不足以委托节点");
         // 委托
         this.maintainCanDeposit(amount);
@@ -243,14 +238,14 @@ public class ConsensusManager {
         ConsensusDepositInfo last = depositList.removeLast();
         String withdrawHash = this.withdraw(last.getHash());
         BigInteger deposit = last.getDeposit();
-        availableAmount = availableAmount.subtract(fee).add(deposit);
+        availableAmount = availableAmount.add(deposit);
         depositLockedAmount = depositLockedAmount.subtract(deposit);
         if (availableAmount.compareTo(value) < 0) {
             return withdrawIfPermitted(value);
         } else {
             availableAmount = availableAmount.subtract(value);
             // 若可用金额足够，则继续委托进去
-            BigInteger amount = availableAmount.subtract(ONE_NULS);
+            BigInteger amount = availableAmount;
             if (amount.compareTo(minJoinDeposit) >= 0) {
                 // 委托
                 this.maintainCanDeposit(amount);
@@ -452,7 +447,7 @@ public class ConsensusManager {
             return;
         }
         this.deposit(lastAgentHash, canDepoist);
-        availableAmount = availableAmount.subtract(fee).subtract(canDepoist);
+        availableAmount = availableAmount.subtract(canDepoist);
         depositLockedAmount = depositLockedAmount.add(canDepoist);
     }
 
