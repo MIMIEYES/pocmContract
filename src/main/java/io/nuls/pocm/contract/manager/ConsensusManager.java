@@ -60,9 +60,9 @@ public class ConsensusManager {
     private BigInteger tempDepositLockedAmount = BigInteger.ZERO;
     private ConsensusAwardInfo awardInfo;
     // lock 3.5 days
-    private final long lockConsensusTime = 302400000L;
+    private final long lockConsensusTime = 302400L;
     // lock 3 days
-    private final long lockAgentDepositTime = 259200000L;
+    private final long lockAgentDepositTime = 259200L;
     private long unlockConsensusTime = -1L;
     private long unlockAgentDepositTime = -1L;
     // 初始化共识管理器
